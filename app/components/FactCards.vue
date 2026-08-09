@@ -40,7 +40,7 @@ const facts = [
 </script>
 
 <template>
-  <section class="facts">
+  <section class="facts" id="facts">
     <h2>Факты о медитации</h2>
     <div class="facts__grid">
       <article v-for="fact in facts" :key="fact.title" class="facts__card">

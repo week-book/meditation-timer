@@ -121,6 +121,9 @@ function onVolumeInput(event: Event) {
 /* ---------- Полноэкранный режим ---------- */
 const fullscreen = useFullscreen()
 
+/* ---------- Экран не гаснет во время медитации ---------- */
+const wakeLock = useWakeLock()
+
 /* ---------- Настройки (сворачиваемая панель) ---------- */
 const settingsOpen = ref(false)
 
@@ -166,6 +169,7 @@ function beginActiveSession() {
 }
 
 function startPreparation() {
+  wakeLock.enable()
   overlayPhase.value = 'preparing'
   prepCount.value = PREP_SECONDS
   prepIntervalId = setInterval(() => {
@@ -188,6 +192,7 @@ function handleSessionFinish() {
   })
   returnTimeoutId = setTimeout(() => {
     lofi.stop()
+    wakeLock.disable()
     resetOverlays()
   }, RETURN_SECONDS * 1000)
 }
@@ -196,6 +201,7 @@ function handleSessionFinish() {
 function handleStartPause() {
   if (overlayPhase.value === 'preparing') {
     // отмена подготовки — просто возвращаемся к начальному экрану
+    wakeLock.disable()
     resetOverlays()
     return
   }
@@ -204,18 +210,21 @@ function handleStartPause() {
     clearReturnTimer()
     breathing.stopBreathing()
     lofi.stop()
+    wakeLock.disable()
     resetOverlays()
     return
   }
   if (timer.running.value) {
     timer.pause()
     breathing.stopBreathing()
+    wakeLock.disable()
   } else {
     const isFreshStart = timer.remaining.value === timer.totalSeconds.value
     if (isFreshStart) {
       startPreparation()
     } else {
       // возобновление после паузы — разминка перед стартом уже была не нужна
+      wakeLock.enable()
       timer.start(handleSessionFinish)
       breathing.start()
     }
@@ -226,6 +235,7 @@ function handleReset() {
   resetOverlays()
   timer.reset()
   breathing.stopBreathing()
+  wakeLock.disable()
 }
 
 function selectDuration(min: number) {
@@ -234,6 +244,7 @@ function selectDuration(min: number) {
   timer.setDuration(min)
   breathing.stopBreathing()
   settings.setDuration(min)
+  wakeLock.disable()
 }
 
 const startBtnLabel = computed(() => {
@@ -378,10 +389,13 @@ onUnmounted(() => {
       <button class="secondary" @click="handleReset">Сбросить</button>
     </div>
 
-    <div class="music-controls music-controls--quick">
+    <div class="music-toggle-row">
       <button class="secondary" @click="lofi.toggle">
         {{ lofi.playing.value ? 'Остановить музыку' : 'Играть lo-fi' }}
       </button>
+    </div>
+
+    <div class="music-controls music-controls--quick">
       <input
         type="range"
         min="0"

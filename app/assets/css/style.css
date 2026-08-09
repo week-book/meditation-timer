@@ -385,6 +385,18 @@ body.is-fullscreen .fullscreen-toggle .icon-compress {
   font-size: 0.8rem;
 }
 
+.music-toggle-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+/* фиксированная ширина — чтобы кнопка не "прыгала" сама по себе при смене
+   текста ("Играть lo-fi" / "Остановить музыку") */
+.music-toggle-row button {
+  min-width: 176px;
+}
+
 .music-controls {
   display: flex;
   gap: 14px;
