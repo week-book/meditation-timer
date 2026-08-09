@@ -40,6 +40,51 @@ useHead({
     },
   ],
 })
+
+/* ---------- Подсветка активного раздела в нижней навигации ---------- */
+// По умолчанию (пока JS не догрузился/во время SSR) активен «Таймер» — это
+// же первый экран, который видит пользователь. Дальше IntersectionObserver
+// следит, какой из трёх блоков сейчас во вьюпорте, и переключает подсветку
+// без единого слушателя scroll (дешевле и не дёргается).
+const activeSection = ref<'home' | 'facts' | 'social'>('home')
+let observer: IntersectionObserver | null = null
+
+onMounted(() => {
+  const sections: Array<'home' | 'facts' | 'social'> = ['home', 'facts', 'social']
+  const visibleRatios = new Map<string, number>()
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        visibleRatios.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0)
+      }
+      // раздел с наибольшей видимой площадью и считаем текущим —
+      // так подсветка не "прыгает" на стыке двух блоков
+      let best: string = activeSection.value
+      let bestRatio = 0
+      for (const [id, ratio] of visibleRatios) {
+        if (ratio > bestRatio) {
+          bestRatio = ratio
+          best = id
+        }
+      }
+      if (bestRatio > 0) {
+        activeSection.value = best as typeof activeSection.value
+      }
+    },
+    // средняя полоса вьюпорта — с поправкой снизу на высоту фикс. навигации
+    { threshold: [0, 0.25, 0.5, 0.75, 1], rootMargin: '-10% 0px -25% 0px' },
+  )
+
+  for (const id of sections) {
+    const el = document.getElementById(id)
+    if (el) observer.observe(el)
+  }
+})
+
+onUnmounted(() => {
+  observer?.disconnect()
+})
 </script>
 
 <template>
@@ -48,7 +93,7 @@ useHead({
          .timer-stage центрирует именно эту зону на весь экран, а не body
          целиком — иначе SEO-статья ниже утягивает виджет вместе с собой
          при центрировании (см. style.css). -->
-    <div class="timer-stage">
+    <div id="home" class="timer-stage">
       <ClientOnly>
         <MeditationTimer />
         <template #fallback>
@@ -60,21 +105,30 @@ useHead({
       </ClientOnly>
     </div>
 
-    <!-- ==================== НАВИГАЦИЯ ПО РАЗДЕЛАМ СТРАНИЦЫ ====================
-         Ссылки только на реально существующие блоки страницы (никаких
-         придуманных разделов) — ведут на соответствующие id ниже. -->
-    <nav class="page-nav" aria-label="Разделы страницы">
-      <a href="#facts">Факты о медитации</a>
-      <a href="#social">Мои соцсети</a>
-    </nav>
-
     <FactCards />
 
     <SocialCards />
+
+    <!-- ==================== НАВИГАЦИЯ ПО РАЗДЕЛАМ СТРАНИЦЫ ====================
+         Закреплена снизу экрана, поэтому видна постоянно — и над таймером,
+         и при просмотре фактов/соцсетей. Ссылки ведут на реально
+         существующие блоки страницы (id ниже) плюс кнопка возврата к
+         таймеру. -->
+    <nav class="page-nav" aria-label="Разделы страницы">
+      <a href="#home" :class="{ active: activeSection === 'home' }">Таймер</a>
+      <a href="#facts" :class="{ active: activeSection === 'facts' }">Факты</a>
+      <a href="#social" :class="{ active: activeSection === 'social' }">Соцсети</a>
+    </nav>
   </main>
 </template>
 
 <style scoped>
+main {
+  /* запас снизу под фиксированную нижнюю навигацию, чтобы последний
+     блок страницы не оказывался у неё под капотом */
+  padding-bottom: 72px;
+}
+
 .timer-fallback {
   display: flex;
   align-items: center;
@@ -101,23 +155,33 @@ useHead({
   margin-bottom: 8px;
 }
 
+/* Закреплена снизу вьюпорта — остаётся на экране при любой прокрутке,
+   поверх таймера и остальных блоков. */
 .page-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
-  max-width: 680px;
-  margin: 0 auto 16px;
-  padding: 0 16px;
+  gap: 8px;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: rgba(244, 241, 234, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: 1px solid #e2dbe7;
 }
 
 .page-nav a {
   padding: 8px 16px;
   border-radius: 999px;
   border: 1px solid #d8d1e0;
+  background: #fff;
   color: #5a5a5a;
   font-size: 0.85rem;
   text-decoration: none;
+  white-space: nowrap;
   transition:
     background 0.2s,
     color 0.2s,
@@ -125,6 +189,12 @@ useHead({
 }
 
 .page-nav a:hover {
+  background: #9a8fae;
+  border-color: #9a8fae;
+  color: #fff;
+}
+
+.page-nav a.active {
   background: #9a8fae;
   border-color: #9a8fae;
   color: #fff;

@@ -4,6 +4,29 @@
   box-sizing: border-box;
 }
 
+/* Плавная прокрутка при переходе по якорным ссылкам (#facts, #social, #home) */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Полоса прокрутки страницы скрыта визуально — сама прокрутка колёсиком/
+   свайпом/клавиатурой продолжает работать как обычно, просто без видимого
+   ползунка сбоку экрана. */
+html {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* старый Edge/IE */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, новый Edge */
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #3a3a3a;
@@ -27,6 +50,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* запас снизу, чтобы фиксированная нижняя навигация не перекрывала
+     круг и кнопки таймера на маленьких экранах */
+  padding-bottom: 64px;
+  scroll-margin-top: 0;
 }
 
 body.breathing {
@@ -254,6 +281,11 @@ body.is-fullscreen .fullscreen-toggle .icon-expand {
 
 body.is-fullscreen .fullscreen-toggle .icon-compress {
   display: block;
+}
+
+/* В полноэкранном режиме нижняя навигация только отвлекает — прячем её */
+body.is-fullscreen .page-nav {
+  display: none;
 }
 
 /* ---------- Переключатель настроек ---------- */
