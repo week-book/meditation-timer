@@ -1,7 +1,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2026-08-08',
 
-  modules: ['@nuxt/eslint'],
+  modules: ['@nuxt/eslint', '@pinia/nuxt'],
 
   // SSR включён на уровне всего приложения — HTML страницы (текст, мета-теги,
   // структура) рендерится на сервере и сразу виден роботам.

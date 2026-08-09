@@ -147,6 +147,50 @@ body.breathing {
   opacity: 1;
 }
 
+/* ---------- Подготовка к сессии ---------- */
+
+.circle.preparing {
+  animation: prepBreathe 2.5s ease-in-out infinite;
+}
+
+@keyframes prepBreathe {
+  0%,
+  100% {
+    transform: scale(1);
+    border-color: #c9c2b2;
+    box-shadow: 0 0 0 rgba(220, 200, 230, 0);
+  }
+  50% {
+    transform: scale(1.03);
+    border-color: #b9a9cc;
+    box-shadow: 0 0 20px rgba(200, 180, 220, 0.3);
+  }
+}
+
+/* ---------- Возвращение после сессии ---------- */
+
+.circle.closing {
+  transition:
+    border-color 1.5s ease,
+    transform 1.5s ease,
+    box-shadow 1.5s ease;
+  border-color: #b9a9cc;
+}
+
+.return-hint {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #9a8fae;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  max-width: 220px;
+}
+
+.return-hint.visible {
+  opacity: 1;
+}
+
 /* ---------- Кнопки управления ---------- */
 
 .controls {
@@ -347,6 +391,10 @@ body.is-fullscreen .fullscreen-toggle .icon-compress {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.music-controls--quick {
+  margin-bottom: 20px;
 }
 
 .music-controls input[type='range'] {

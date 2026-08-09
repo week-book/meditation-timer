@@ -9,6 +9,12 @@ export function useBreathing() {
 
   let phaseTimeoutId: ReturnType<typeof setTimeout> | null = null
 
+  // мягкая остановка: вместо того чтобы оборвать текущую фазу (вдох/задержку/выдох)
+  // на середине, отмечаем, что после того как она сама доиграет до конца —
+  // нужно остановиться, а не запускать следующую фазу по кругу
+  let stopRequested = false
+  let stopRequestedCallback: (() => void) | undefined
+
   const totalDuration = computed(() => config.inhale + config.hold + config.exhale)
   const inhaleEndPct = computed(() => ((config.inhale / totalDuration.value) * 100).toFixed(2))
   const holdEndPct = computed(() =>
@@ -26,6 +32,18 @@ export function useBreathing() {
       phase.value = phases[i].label
       phaseVisible.value = true
       phaseTimeoutId = setTimeout(() => {
+        // текущая фаза (например, вдох или задержка) доиграла до конца —
+        // если за это время попросили остановиться, останавливаемся именно
+        // сейчас, на границе фаз, а не хватаем цикл посреди дыхания
+        if (stopRequested) {
+          stopRequested = false
+          active.value = false
+          phaseVisible.value = false
+          const cb = stopRequestedCallback
+          stopRequestedCallback = undefined
+          cb?.()
+          return
+        }
         i = (i + 1) % phases.length
         step()
       }, phases[i].dur * 1000)
@@ -43,9 +61,27 @@ export function useBreathing() {
     runPhaseCycle()
   }
 
+  // немедленная остановка — обрывает текущую фазу на середине.
+  // Используется для паузы/сброса, где резкость ожидаема и осмысленна.
   function stopBreathing() {
     active.value = false
     stopPhaseCycle()
+    stopRequested = false
+    const cb = stopRequestedCallback
+    stopRequestedCallback = undefined
+    cb?.()
+  }
+
+  // мягкая остановка — дожидается конца текущей фазы (довдохнуть/довыдохнуть)
+  // и только потом останавливает цикл, вызывая callback. Нужна для конца
+  // сессии, чтобы она не обрывалась случайно на вдохе или на задержке дыхания.
+  function requestGracefulStop(onDone?: () => void) {
+    if (!active.value) {
+      onDone?.()
+      return
+    }
+    stopRequested = true
+    stopRequestedCallback = onDone
   }
 
   // при смене ритма во время активной сессии — перезапуск цикла с новым таймингом
@@ -70,6 +106,7 @@ export function useBreathing() {
     totalDuration,
     start,
     stopBreathing,
+    requestGracefulStop,
     restartIfActive,
   }
 }
