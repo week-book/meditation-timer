@@ -18,7 +18,7 @@ useSeoMeta({
 })
 
 useHead({
-  link: [{ rel: 'canonical', href: 'https://ваш-домен.ru/' }], // TODO: подставить реальный домен
+  link: [{ rel: 'canonical', href: 'https://https://meditation.week-book.ru/' }],
   script: [
     {
       type: 'application/ld+json',
@@ -188,10 +188,17 @@ main {
     border-color 0.2s;
 }
 
-.page-nav a:hover {
-  background: #9a8fae;
-  border-color: #9a8fae;
-  color: #fff;
+/* Наведение включаем только там, где есть настоящий курсор мыши.
+   На тач-устройствах :hover после тапа "залипает" до следующего тапа
+   в другое место экрана — из-за этого одновременно с реальным активным
+   разделом (класс .active от IntersectionObserver) подсвечивалась ещё
+   и кнопка, по которой только что тапнули. */
+@media (hover: hover) and (pointer: fine) {
+  .page-nav a:hover {
+    background: #9a8fae;
+    border-color: #9a8fae;
+    color: #fff;
+  }
 }
 
 .page-nav a.active {
