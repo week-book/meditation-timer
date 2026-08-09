@@ -13,12 +13,12 @@ useSeoMeta({
   ogDescription:
     'Дыхательные техники, анимированный круг дыхания и звуки природы — прямо в браузере.',
   ogType: 'website',
-  // ogImage: 'https://ваш-домен.ru/og-cover.png', // TODO: добавить картинку-превью для соцсетей
+  ogImage: 'https://s3.week-book.ru/posts/media/og-cover.png',
   twitterCard: 'summary_large_image',
 })
 
 useHead({
-  link: [{ rel: 'canonical', href: 'https://https://meditation.week-book.ru/' }],
+  link: [{ rel: 'canonical', href: 'https://meditation.week-book.ru/' }],
   script: [
     {
       type: 'application/ld+json',
@@ -28,7 +28,7 @@ useHead({
         name: 'Таймер для медитации',
         applicationCategory: 'HealthApplication',
         operatingSystem: 'Any (веб-браузер)',
-        url: 'https://ваш-домен.ru/', // TODO
+        url: 'https://meditation.week-book.ru/',
         description:
           'Онлайн-таймер для медитации с дыхательными техниками, звуками природы и lo-fi музыкой.',
         offers: {
