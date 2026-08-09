@@ -270,6 +270,14 @@ watch(
     document.body.classList.toggle('is-fullscreen', fs)
   },
 )
+// нижнюю навигацию прячем не по факту полноэкранного режима, а по факту
+// идущей медитации — полноэкранный режим сам по себе не должен её скрывать
+watch(
+  () => timer.running.value,
+  (running) => {
+    document.body.classList.toggle('is-meditating', running)
+  },
+)
 
 /* ---------- Плавное появление виджета при (пере)загрузке страницы ---------- */
 // До этого виджет и фоновые частицы появлялись мгновенно в момент гидратации —
@@ -279,6 +287,7 @@ const isMounted = ref(false)
 
 onMounted(() => {
   document.body.classList.toggle('is-fullscreen', fullscreen.isFullscreen.value)
+  document.body.classList.toggle('is-meditating', timer.running.value)
   // тема фона выбрана по умолчанию (или сохранена из прошлого визита) —
   // запускаем частицы сразу при загрузке, а не только по клику в настройках
   startWeather(activeWeather.value)
@@ -314,47 +323,6 @@ onUnmounted(() => {
         >{{ p.emoji }}</span
       >
     </div>
-
-    <button
-      v-if="fullscreen.isSupported"
-      class="fullscreen-toggle"
-      title="Полноэкранный режим"
-      aria-label="Полноэкранный режим"
-      @click="fullscreen.toggle"
-    >
-      <svg
-        class="icon-expand"
-        viewBox="0 0 24 24"
-        width="20"
-        height="20"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
-        <path d="M21 8V5a2 2 0 0 0-2-2h-3"></path>
-        <path d="M3 16v3a2 2 0 0 0 2 2h3"></path>
-        <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
-      </svg>
-      <svg
-        class="icon-compress"
-        viewBox="0 0 24 24"
-        width="20"
-        height="20"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M8 3v3a2 2 0 0 1-2 2H3"></path>
-      <path d="M21 8h-3a2 2 0 0 1-2-2V3"></path>
-      <path d="M3 16h3a2 2 0 0 1 2 2v3"></path>
-      <path d="M16 21v-3a2 2 0 0 1 2-2h3"></path>
-    </svg>
-  </button>
 
   <div class="container">
     <div
@@ -392,6 +360,46 @@ onUnmounted(() => {
     <div class="music-toggle-row">
       <button class="secondary" @click="lofi.toggle">
         {{ lofi.playing.value ? 'Остановить музыку' : 'Играть lo-fi' }}
+      </button>
+      <button
+        v-if="fullscreen.isSupported"
+        class="secondary fullscreen-toggle"
+        title="Полноэкранный режим"
+        aria-label="Полноэкранный режим"
+        @click="fullscreen.toggle"
+      >
+        <svg
+          class="icon-expand"
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
+          <path d="M21 8V5a2 2 0 0 0-2-2h-3"></path>
+          <path d="M3 16v3a2 2 0 0 0 2 2h3"></path>
+          <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
+        </svg>
+        <svg
+          class="icon-compress"
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M8 3v3a2 2 0 0 1-2 2H3"></path>
+          <path d="M21 8h-3a2 2 0 0 1-2-2V3"></path>
+          <path d="M3 16h3a2 2 0 0 1 2 2v3"></path>
+          <path d="M16 21v-3a2 2 0 0 1 2-2h3"></path>
+        </svg>
       </button>
     </div>
 

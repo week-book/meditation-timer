@@ -248,27 +248,21 @@ button.secondary {
   border: 1px solid #c9c2b2;
 }
 
-/* ---------- Кнопка полноэкранного режима ---------- */
+/* ---------- Кнопка полноэкранного режима ----------
+   Живёт рядом с кнопкой музыки (внутри .music-toggle-row), а не в углу
+   экрана — так до неё удобно дотянуться одной рукой на телефоне.
+   Стиль наследует от button.secondary (прозрачный фон, бежевая рамка),
+   но кнопка круглая и без текста — только иконка. */
 
 .fullscreen-toggle {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 20;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border-radius: 50%;
-  background: rgba(58, 58, 58, 0.65);
-  color: #f4f1ea;
-  backdrop-filter: blur(4px);
-}
-
-.fullscreen-toggle:hover {
-  opacity: 0.85;
 }
 
 .fullscreen-toggle .icon-compress {
@@ -283,8 +277,10 @@ body.is-fullscreen .fullscreen-toggle .icon-compress {
   display: block;
 }
 
-/* В полноэкранном режиме нижняя навигация только отвлекает — прячем её */
-body.is-fullscreen .page-nav {
+/* Нижнюю навигацию прячем только во время самой медитации (идёт таймер),
+   а не при переходе в полноэкранный режим — полноэкранный режим сам
+   по себе панель не трогает. */
+body.is-meditating .page-nav {
   display: none;
 }
 
@@ -420,12 +416,15 @@ body.is-fullscreen .page-nav {
 .music-toggle-row {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 14px;
 }
 
 /* фиксированная ширина — чтобы кнопка не "прыгала" сама по себе при смене
-   текста ("Играть lo-fi" / "Остановить музыку") */
-.music-toggle-row button {
+   текста ("Играть lo-fi" / "Остановить музыку"). Круглую кнопку
+   полноэкранного режима это правило не должно трогать. */
+.music-toggle-row button:not(.fullscreen-toggle) {
   min-width: 176px;
 }
 

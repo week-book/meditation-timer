@@ -1,13 +1,22 @@
 <script setup lang="ts">
 // Статический массив — рендерится на сервере вместе со страницей, как и
-// FactCards рядом. QR-коды генерируются сторонним сервисом api.qrserver.com
-// прямо через <img src="...">: это работает без единой строчки клиентского
-// JS (сервис бесплатный, ключ не нужен), рендерится и на сервере, и видно
-// поисковикам, и не даёт скачков вёрстки (CLS) — размер задан заранее.
+// FactCards рядом. QR-коды раньше генерировались сторонним сервисом
+// api.qrserver.com через <img src="https://...">, что делало карточки
+// зависимыми от чужого сайта (нет сети/сервис лёг/заблокирован — нет
+// QR-кода). Теперь SVG сгенерированы один раз офлайн (см. скрипт ниже)
+// и лежат прямо в public/qr — раздаются нашим же сервером, без единого
+// внешнего запроса.
+//
+// Скрипт генерации (python, пакет qrcode):
+//   qrcode.QRCode(error_correction=ERROR_CORRECT_M, box_size=10, border=2,
+//                 image_factory=qrcode.image.svg.SvgPathFillImage)
+//   .make_image(fill_color="#3a3a3a", back_color="white")
+// Если ссылки поменяются — файлы в public/qr нужно перегенерировать вручную.
 interface SocialLink {
   label: string
   displayUrl: string
   href: string
+  qrFile: string
 }
 
 const links: SocialLink[] = [
@@ -15,35 +24,29 @@ const links: SocialLink[] = [
     label: 'Сайт',
     displayUrl: 'week-book.ru',
     href: 'https://week-book.ru/',
+    qrFile: 'site',
   },
   {
     label: 'Телеграм-канал',
     displayUrl: 't.me/weeekbook',
     href: 'https://t.me/weeekbook',
+    qrFile: 'telegram',
   },
   {
     label: 'Вопросы и жалобы',
     displayUrl: 'Написать в директ',
     href: 'https://t.me/weeekbook?direct',
+    qrFile: 'telegram-direct',
   },
   {
     label: 'GitHub',
     displayUrl: 'github.com/week-book',
     href: 'https://github.com/week-book',
+    qrFile: 'github',
   },
 ]
 
 const QR_SIZE = 180
-
-function qrSrc(href: string) {
-  const params = new URLSearchParams({
-    size: `${QR_SIZE}x${QR_SIZE}`,
-    data: href,
-    margin: '8',
-    format: 'svg',
-  })
-  return `https://api.qrserver.com/v1/create-qr-code/?${params.toString()}`
-}
 </script>
 
 <template>
@@ -53,7 +56,7 @@ function qrSrc(href: string) {
       <article v-for="link in links" :key="link.href" class="social__card">
         <a :href="link.href" target="_blank" rel="noopener noreferrer" class="social__qr-link">
           <img
-            :src="qrSrc(link.href)"
+            :src="`/qr/${link.qrFile}.svg`"
             :width="QR_SIZE"
             :height="QR_SIZE"
             :alt="`QR-код: ${link.label}`"
