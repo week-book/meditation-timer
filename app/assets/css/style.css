@@ -235,7 +235,17 @@ button {
   border-radius: 24px;
   font-size: 0.95rem;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition: opacity 0.2s;
+}
+
+button:focus {
+  outline: none;
+}
+
+button:focus-visible {
+  outline: 2px solid #9a8fae;
+  outline-offset: 2px;
 }
 
 button:hover {
@@ -296,6 +306,21 @@ body.is-meditating .page-nav {
 }
 
 .settings-toggle:hover {
+  opacity: 0.7;
+}
+
+.cue-jump {
+  display: inline-block;
+  background: none;
+  color: #9a8fae;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  padding: 6px 12px;
+  text-decoration: none;
+  margin-bottom: 4px;
+}
+
+.cue-jump:hover {
   opacity: 0.7;
 }
 

@@ -105,6 +105,13 @@ onUnmounted(() => {
       </ClientOnly>
     </div>
 
+    <ClientOnly>
+      <BreathCueDemo />
+      <template #fallback>
+        <div class="cues-fallback" aria-hidden="true" />
+      </template>
+    </ClientOnly>
+
     <FactCards />
 
     <SocialCards />
@@ -141,6 +148,12 @@ main {
   border-radius: 50%;
   border: 2px solid #c9c2b2;
   opacity: 0.5;
+}
+
+.cues-fallback {
+  /* держит примерно ту же высоту, что и загруженный блок сигналов —
+     чтобы страница не "прыгала", пока ClientOnly ждёт гидратации */
+  min-height: 360px;
 }
 
 .seo-content {

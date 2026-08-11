@@ -64,6 +64,27 @@ function applyCustomBreath() {
   settings.setBreath({ preset: '', inhale, hold, exhale })
 }
 
+/* ---------- Сигнал смены фазы дыхания ---------- */
+// Выбор стиля сигнала и прослушивание вариантов живут в отдельном блоке
+// BreathCueDemo (как FactCards/SocialCards) — он же пишет выбор в
+// settings.breathCueStyle. Здесь только проигрываем то, что выбрано,
+// на каждую смену фазы во время настоящей сессии.
+const breathCue = useBreathCue()
+watch(
+  () => settings.breathCueStyle,
+  (style) => breathCue.setStyle(style),
+  { immediate: true },
+)
+watch(
+  () => breathing.phase.value,
+  (phase) => {
+    if (!breathing.active.value) return
+    if (phase === 'Вдох') breathCue.playCue('inhale')
+    else if (phase === 'Задержка') breathCue.playCue('hold')
+    else if (phase === 'Выдох') breathCue.playCue('exhale')
+  },
+)
+
 // динамические keyframes дыхания, зависящие от текущего ритма
 const breathingCss = computed(() => {
   const inhaleEnd = breathing.inhaleEndPct.value
@@ -413,6 +434,8 @@ onUnmounted(() => {
         @input="onVolumeInput"
       />
     </div>
+
+    <a href="#cues" class="cue-jump">Опробовать сигналы дыхания</a>
 
     <button class="settings-toggle" @click="settingsOpen = !settingsOpen">
       {{ settingsOpen ? 'Скрыть настройки' : 'Настройки' }}

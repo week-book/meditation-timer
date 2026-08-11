@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { WeatherTheme } from '~/types'
+import type { BreathCueStyle, WeatherTheme } from '~/types'
 
 export interface BreathSettings {
   preset: string // '4-4' | '6-6' | '4-7-8' | '' (своё значение)
@@ -13,6 +13,7 @@ interface SettingsState {
   breath: BreathSettings
   weatherTheme: WeatherTheme
   musicVolume: number
+  breathCueStyle: BreathCueStyle
 }
 
 const STORAGE_KEY = 'meditation-timer:settings'
@@ -22,6 +23,7 @@ const defaults: SettingsState = {
   breath: { preset: '4-4', inhale: 4, hold: 0, exhale: 4 },
   weatherTheme: 'petals',
   musicVolume: 0.5,
+  breathCueStyle: 'tone',
 }
 
 // Настройки хранятся в localStorage браузера — никакого бэкенда для этого
@@ -32,6 +34,7 @@ export const useSettingsStore = defineStore('settings', {
     breath: { ...defaults.breath },
     weatherTheme: defaults.weatherTheme,
     musicVolume: defaults.musicVolume,
+    breathCueStyle: defaults.breathCueStyle,
   }),
 
   actions: {
@@ -59,6 +62,9 @@ export const useSettingsStore = defineStore('settings', {
         if (typeof parsed.musicVolume === 'number') {
           this.musicVolume = parsed.musicVolume
         }
+        if (parsed.breathCueStyle) {
+          this.breathCueStyle = parsed.breathCueStyle
+        }
       } catch {
         // повреждённые данные в localStorage (или приватный режим без
         // доступа к нему) — просто остаёмся на дефолтах
@@ -73,6 +79,7 @@ export const useSettingsStore = defineStore('settings', {
           breath: this.breath,
           weatherTheme: this.weatherTheme,
           musicVolume: this.musicVolume,
+          breathCueStyle: this.breathCueStyle,
         }
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
       } catch {
@@ -98,6 +105,11 @@ export const useSettingsStore = defineStore('settings', {
 
     setMusicVolume(volume: number) {
       this.musicVolume = volume
+      this.persist()
+    },
+
+    setBreathCueStyle(style: BreathCueStyle) {
+      this.breathCueStyle = style
       this.persist()
     },
   },
