@@ -150,23 +150,43 @@ const settingsOpen = ref(false)
 const settingsPanelRef = ref<HTMLElement | null>(null)
 
 function scrollSettingsIntoView() {
-  settingsPanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  // block: 'start' прижимал панель к самому верху экрана — на телефоне
+  // верх утыкается в шапку/чёлку, а до нижних пунктов приходится тянуться.
+  // block: 'center' центрирует панель во вьюпорте, чтобы все пункты
+  // оказывались в удобной для большого пальца зоне.
+  settingsPanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
-function onSettingsPanelTransitionEnd(e: TransitionEvent) {
-  // max-height — самое долгое из свойств в transition панели, ждём именно его,
-  // иначе сработает несколько раз (для opacity/margin-top) или раньше, чем
-  // раскладка реально устоялась
-  if (e.propertyName !== 'max-height') return
-  if (settingsOpen.value) scrollSettingsIntoView()
+function scrollTimerIntoView() {
+  // Кнопка «Таймер» в нижней навигации — обычный переход по #home
+  // (scroll-margin-top: 0 у .timer-stage), который подводит блок вплотную
+  // к верху экрана. Панель настроек лежит внутри #home, но сама
+  // центрируется во flex-контейнере — поэтому, чтобы получить ровно то же
+  // поведение, скроллим на сам #home, а не на внутренний блок.
+  document.getElementById('home')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function toggleSettings() {
   settingsOpen.value = !settingsOpen.value
   // пока настройки открыты, отключаем вертикальное центрирование виджета
   // (.timer-stage), иначе рост панели пересчитывает центр и виджет "плывёт"
-  // одновременно со скроллом — вместе это и давало ощущение дёрганости
+  // одновременно со скроллом — вместе это и давало ощущение дёрганости.
+  // Раньше снятие этого класса при закрытии откладывалось до transitionend
+  // на max-height — но конфликтовало не это, а встроенный в браузер Scroll
+  // Anchoring (см. overflow-anchor: none в style.css); теперь, когда он
+  // отключён, класс можно переключать сразу же, синхронно с кликом.
   document.body.classList.toggle('settings-panel-open', settingsOpen.value)
+
+  // Запускаем scrollIntoView сразу на следующем тике — он идёт с
+  // behavior: 'smooth' и плавно "подхватывает" рост/схлопывание панели,
+  // не дожидаясь конца transition на max-height.
+  if (settingsOpen.value) {
+    nextTick(() => scrollSettingsIntoView())
+  } else {
+    // При закрытии — возвращаем пользователя к таймеру, а не оставляем
+    // его внизу страницы среди только что скрывшихся настроек.
+    nextTick(() => scrollTimerIntoView())
+  }
 }
 
 /* ---------- Плавные вход и выход из сессии ---------- */
@@ -468,9 +488,9 @@ onUnmounted(() => {
       ref="settingsPanelRef"
       class="settings-panel"
       :class="{ open: settingsOpen }"
-      @transitionend="onSettingsPanelTransitionEnd"
     >
-      <section class="settings-section">
+      <div class="settings-panel-inner">
+        <section class="settings-section">
         <div class="section-title">Длительность</div>
         <div class="presets">
           <button
@@ -525,6 +545,7 @@ onUnmounted(() => {
           </button>
         </div>
       </section>
+      </div>
     </div>
   </div>
   </div>
