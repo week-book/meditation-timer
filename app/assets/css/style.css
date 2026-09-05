@@ -56,6 +56,16 @@ body {
   scroll-margin-top: 0;
 }
 
+/* Пока открыта панель настроек, отключаем вертикальное центрирование:
+   иначе рост .settings-panel пересчитывает центр flex-контейнера и весь
+   виджет смещается одновременно с раскрытием панели и со скроллом к ней —
+   вместе это выглядело дёргано. Прижимаем виджет к верху и даём странице
+   расти вниз, тогда скролл к панели — единственное движение на экране. */
+body.settings-panel-open .timer-stage {
+  align-items: flex-start;
+  padding-top: 40px;
+}
+
 body.breathing {
   animation: shimmer var(--breathe-duration, 8s) ease-in-out infinite;
 }
@@ -94,7 +104,7 @@ body.breathing {
   top: -8%;
   will-change: transform;
   animation:
-    fall var(--fall-duration, 14s) linear forwards,
+    fall var(--fall-duration, 14s) var(--fall-delay, 0s) linear forwards,
     sway var(--sway-duration, 5s) ease-in-out infinite;
   user-select: none;
 }

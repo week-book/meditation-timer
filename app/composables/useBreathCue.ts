@@ -11,7 +11,7 @@ const PHASE_FREQUENCIES: Record<CuePhase, number> = {
   exhale: 260,
 }
 
-const CUE_VOLUME = 0.55
+const CUE_VOLUME = 0.75
 
 export function useBreathCue() {
   const style = ref<BreathCueStyle>('tone')

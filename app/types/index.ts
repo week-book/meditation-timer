@@ -25,4 +25,5 @@ export interface Particle {
   swayDuration: number
   size: number
   opacity: number
+  fallDelay: number
 }

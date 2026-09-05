@@ -147,6 +147,27 @@ const wakeLock = useWakeLock()
 
 /* ---------- Настройки (сворачиваемая панель) ---------- */
 const settingsOpen = ref(false)
+const settingsPanelRef = ref<HTMLElement | null>(null)
+
+function scrollSettingsIntoView() {
+  settingsPanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+}
+
+function onSettingsPanelTransitionEnd(e: TransitionEvent) {
+  // max-height — самое долгое из свойств в transition панели, ждём именно его,
+  // иначе сработает несколько раз (для opacity/margin-top) или раньше, чем
+  // раскладка реально устоялась
+  if (e.propertyName !== 'max-height') return
+  if (settingsOpen.value) scrollSettingsIntoView()
+}
+
+function toggleSettings() {
+  settingsOpen.value = !settingsOpen.value
+  // пока настройки открыты, отключаем вертикальное центрирование виджета
+  // (.timer-stage), иначе рост панели пересчитывает центр и виджет "плывёт"
+  // одновременно со скроллом — вместе это и давало ощущение дёрганости
+  document.body.classList.toggle('settings-panel-open', settingsOpen.value)
+}
 
 /* ---------- Плавные вход и выход из сессии ---------- */
 // Раньше сессия стартовала и обрывалась мгновенно по клику/таймеру — это
@@ -322,6 +343,7 @@ onMounted(() => {
 onUnmounted(() => {
   clearPrepTimer()
   clearReturnTimer()
+  document.body.classList.remove('settings-panel-open')
 })
 </script>
 
@@ -337,6 +359,7 @@ onUnmounted(() => {
         :style="{
           left: p.left + 'vw',
           '--fall-duration': p.duration + 's',
+          '--fall-delay': p.fallDelay + 's',
           '--sway-duration': p.swayDuration + 's',
           fontSize: p.size + 'px',
           opacity: p.opacity,
@@ -437,11 +460,16 @@ onUnmounted(() => {
 
     <a href="#cues" class="cue-jump">Опробовать сигналы дыхания</a>
 
-    <button class="settings-toggle" @click="settingsOpen = !settingsOpen">
+    <button class="settings-toggle" @click="toggleSettings">
       {{ settingsOpen ? 'Скрыть настройки' : 'Настройки' }}
     </button>
 
-    <div class="settings-panel" :class="{ open: settingsOpen }">
+    <div
+      ref="settingsPanelRef"
+      class="settings-panel"
+      :class="{ open: settingsOpen }"
+      @transitionend="onSettingsPanelTransitionEnd"
+    >
       <section class="settings-section">
         <div class="section-title">Длительность</div>
         <div class="presets">
